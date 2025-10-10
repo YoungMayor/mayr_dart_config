@@ -72,7 +72,7 @@ dev_dependencies:
   build_runner: ^2.4.15
 ```
 
-### 2. Create build.yaml in project root
+### 2. Create build.yaml in project root (Required)
 
 ```yaml
 targets:
@@ -81,6 +81,8 @@ targets:
       - lib/**
       - config.yaml
 ```
+
+> **Why is build.yaml required?** build_runner needs to know which files to include in the asset graph. This is a standard requirement for all build_runner-based code generators.
 
 ### 3. Run the generator
 
@@ -91,20 +93,34 @@ dart run build_runner build
 This creates `lib/config.g.dart`:
 
 ```dart
-class AppConfig {
-  static String get name => MayrConfig.get('app.name');
-  static String get version => MayrConfig.get('app.version');
-  static bool get debug => MayrConfig.get('app.debug');
+class Config {
+  static final app = _AppConfig();
+  static final database = _DatabaseConfig();
+}
+
+class _AppConfig {
+  String get name => MayrConfig.get('app.name');
+  String get version => MayrConfig.get('app.version');
+  bool get debug => MayrConfig.get('app.debug');
 }
 ```
 
 Use it:
 
 ```dart
-import 'package:mayr_config/config.g.dart';
+import 'lib/config.g.dart';
 
-print(AppConfig.name);        // Type-safe!
-print(AppConfig.version);     // Autocomplete!
+print(Config.app.name);
+print(Config.app.version);
+print(Config.database.host);
+```
+
+---
+
+## Usage Without Code Generation
+
+You can also use MayrConfig without code generation:
+
 ```
 
 ## Common Patterns

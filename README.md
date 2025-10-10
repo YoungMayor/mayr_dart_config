@@ -102,7 +102,7 @@ dev_dependencies:
   build_runner: ^2.4.15
 ```
 
-2. Create a `build.yaml` file in your project root:
+2. **(Required)** Create a `build.yaml` file in your project root:
 
 ```yaml
 targets:
@@ -112,47 +112,57 @@ targets:
       - config.yaml  # Include your config file as a source
 ```
 
+> **Note**: The `build.yaml` file is required for build_runner to access your `config.yaml`. This is a standard build_runner requirement and cannot be automated by the package.
+
 3. Run the code generator:
 
 ```bash
 dart run build_runner build
 ```
 
-This will generate a `lib/config.g.dart` file containing structured accessors:
+This will generate a `lib/config.g.dart` file with a centralized `Config` class:
 
 ```dart
 // config.g.dart
-class AppConfig {
-  AppConfig._();
+class Config {
+  Config._();
   
-  static String get name => MayrConfig.get('app.name');
-  static String get env => MayrConfig.get('app.env');
-  static bool get debug => MayrConfig.get('app.debug');
+  static final app = _AppConfig();
+  static final api = _ApiConfig();
+  static final database = _DatabaseConfig();
 }
 
-class ApiConfig {
-  ApiConfig._();
+class _AppConfig {
+  const _AppConfig();
   
-  static String get baseUrl => MayrConfig.get('api.baseUrl');
-  static int get timeout => MayrConfig.get('api.timeout');
+  String get name => MayrConfig.get('app.name');
+  String get env => MayrConfig.get('app.env');
+  bool get debug => MayrConfig.get('app.debug');
 }
 
-class DatabaseConfig {
-  DatabaseConfig._();
+class _ApiConfig {
+  const _ApiConfig();
   
-  static String get host => MayrConfig.get('database.host');
-  static int get port => MayrConfig.get('database.port');
-  static String get username => MayrConfig.get('database.username');
-  static String get password => MayrConfig.get('database.password');
+  String get baseUrl => MayrConfig.get('api.baseUrl');
+  int get timeout => MayrConfig.get('api.timeout');
+}
+
+class _DatabaseConfig {
+  const _DatabaseConfig();
+  
+  String get host => MayrConfig.get('database.host');
+  int get port => MayrConfig.get('database.port');
+  String get username => MayrConfig.get('database.username');
+  String get password => MayrConfig.get('database.password');
 }
 ```
 
 Now, you can do:
 
 ```dart
-print(AppConfig.name);
-print(ApiConfig.baseUrl);
-print(DatabaseConfig.username);
+print(Config.app.name);
+print(Config.api.baseUrl);
+print(Config.database.username);
 ```
 
 ✅ No more magic strings

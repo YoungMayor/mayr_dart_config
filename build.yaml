@@ -15,3 +15,6 @@ builders:
     auto_apply: dependents
     build_to: source
     runs_before: []
+    defaults:
+      generate_for:
+        - lib/**

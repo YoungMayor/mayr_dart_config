@@ -10,20 +10,20 @@ Future<void> main() async {
 
   print('--- Using Generated Classes ---');
   // Access configuration using type-safe generated classes
-  print('App Name: ${AppConfig.name}');
-  print('App Debug: ${AppConfig.debug}');
-  print('App Env: ${AppConfig.env}');
-  print('App Locale: ${AppConfig.locale}');
+  print('App Name: ${Config.app.name}');
+  print('App Debug: ${Config.app.debug}');
+  print('App Env: ${Config.app.env}');
+  print('App Locale: ${Config.app.locale}');
 
   print('\nAPI Configuration:');
-  print('  Base URL: ${ApiConfig.baseurl}');
-  print('  Timeout: ${ApiConfig.timeout}');
+  print('  Base URL: ${Config.api.baseurl}');
+  print('  Timeout: ${Config.api.timeout}');
 
   print('\nDatabase Configuration:');
-  print('  Host: ${DatabaseConfig.host}');
-  print('  Port: ${DatabaseConfig.port}');
-  print('  Username: ${DatabaseConfig.username}');
-  print('  Password: ${DatabaseConfig.password}');
+  print('  Host: ${Config.database.host}');
+  print('  Port: ${Config.database.port}');
+  print('  Username: ${Config.database.username}');
+  print('  Password: ${Config.database.password}');
 
   print('\n=== Example Complete ===');
 }

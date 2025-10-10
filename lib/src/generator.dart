@@ -53,14 +53,33 @@ class MayrConfigBuilder implements Builder {
     buffer.writeln("import 'package:mayr_config/mayr_config.dart';");
     buffer.writeln();
 
-    // Generate classes for each top-level key
+    // Generate main Config class with static getters for each section
+    buffer.writeln('/// Main configuration class providing access to all config sections.');
+    buffer.writeln('class Config {');
+    buffer.writeln('  Config._();');
+    buffer.writeln();
+
+    // Generate static getters for each top-level config section
+    config.forEach((key, value) {
+      if (value is YamlMap) {
+        final getterName = _toCamelCase(key.toString());
+        final className = _toPascalCase(key.toString());
+        buffer.writeln('  /// Access $key configuration.');
+        buffer.writeln('  static final $getterName = _${className}Config();');
+      }
+    });
+
+    buffer.writeln('}');
+    buffer.writeln();
+
+    // Generate individual config section classes
     config.forEach((key, value) {
       final className = _toPascalCase(key.toString());
 
       if (value is YamlMap) {
         buffer.writeln('/// Configuration class for $key.');
-        buffer.writeln('class ${className}Config {');
-        buffer.writeln('  ${className}Config._();');
+        buffer.writeln('class _${className}Config {');
+        buffer.writeln('  const _${className}Config();');
         buffer.writeln();
 
         _generateGetters(buffer, value, key.toString());
@@ -78,16 +97,17 @@ class MayrConfigBuilder implements Builder {
     map.forEach((key, value) {
       final getterName = _toCamelCase(key.toString());
       final fullKey = '$prefix.$key';
+      final dartType = _inferType(value);
 
       if (value is YamlMap) {
         // Nested map - create a sub-class getter
         final subClassName = _toPascalCase(key.toString());
-        buffer.writeln('  static final $getterName = _$subClassName();');
+        buffer.writeln('  /// Access $key configuration.');
+        buffer.writeln('  final $getterName = _$subClassName();');
       } else {
         // Leaf value - create a direct getter
-        final dartType = _inferType(value);
         buffer.writeln(
-          "  static $dartType get $getterName => MayrConfig.get('$fullKey');",
+          "  $dartType get $getterName => MayrConfig.get('$fullKey');",
         );
       }
     });
