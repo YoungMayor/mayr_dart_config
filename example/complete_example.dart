@@ -53,11 +53,11 @@ Future<void> main() async {
   // ═══════════════════════════════════════════════════════════════
   print('🎯 Type Handling:');
   print('─────────────────────────────────────────────────────────');
-  
+
   final appName = MayrConfig.get('app.name'); // String
   final debug = MayrConfig.get('app.debug'); // bool
   final timeout = MayrConfig.get('api.timeout'); // int
-  
+
   print('  String:  $appName (${appName.runtimeType})');
   print('  Boolean: $debug (${debug.runtimeType})');
   print('  Integer: $timeout (${timeout.runtimeType})\n');
@@ -75,15 +75,15 @@ Future<void> main() async {
   // ═══════════════════════════════════════════════════════════════
   print('🔧 Configuration Utilities:');
   print('─────────────────────────────────────────────────────────');
-  
+
   // Check if keys exist
   print('  Has "app.name"?       ${MayrConfig.has('app.name')}');
   print('  Has "missing.key"?    ${MayrConfig.has('missing.key')}');
-  
+
   // Get all keys
   final keyCount = MayrConfig.keys().length;
   print('  Total config keys:    $keyCount');
-  
+
   // List all keys
   print('\n  All available keys:');
   for (var key in MayrConfig.keys()) {
@@ -96,7 +96,7 @@ Future<void> main() async {
   print('🔄 Dynamic Reload:');
   print('─────────────────────────────────────────────────────────');
   print('  Current app.name: ${MayrConfig.get('app.name')}');
-  
+
   await MayrConfig.reload();
   print('  ✓ Configuration reloaded');
   print('  After reload:     ${MayrConfig.get('app.name')}\n');

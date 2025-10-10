@@ -75,7 +75,8 @@ void _generateGetters(StringBuffer buffer, YamlMap map, String prefix) {
       // Leaf value - create a direct getter
       final dartType = _inferType(value);
       buffer.writeln(
-          "  static $dartType get $getterName => MayrConfig.get('$fullKey');");
+        "  static $dartType get $getterName => MayrConfig.get('$fullKey');",
+      );
     }
   });
 
@@ -106,7 +107,8 @@ void _generateNestedGetters(StringBuffer buffer, YamlMap map, String prefix) {
     final dartType = _inferType(value);
 
     buffer.writeln(
-        "  $dartType get $getterName => MayrConfig.get('$fullKey');");
+      "  $dartType get $getterName => MayrConfig.get('$fullKey');",
+    );
   });
 }
 
@@ -128,9 +130,11 @@ String _toPascalCase(String input) {
 
   return input
       .split(RegExp(r'[_\-\s]'))
-      .map((word) => word.isEmpty
-          ? ''
-          : word[0].toUpperCase() + word.substring(1).toLowerCase())
+      .map(
+        (word) => word.isEmpty
+            ? ''
+            : word[0].toUpperCase() + word.substring(1).toLowerCase(),
+      )
       .join('');
 }
 

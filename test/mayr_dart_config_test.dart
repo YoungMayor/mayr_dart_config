@@ -136,7 +136,10 @@ KEY2=value2
 
       expect(MayrConfig.get('database.host'), equals('localhost'));
       expect(MayrConfig.get('database.port'), equals(5432));
-      expect(MayrConfig.get('nested.level1.level2.value'), equals('deep-value'));
+      expect(
+        MayrConfig.get('nested.level1.level2.value'),
+        equals('deep-value'),
+      );
     });
 
     test('returns default value for missing keys', () async {
@@ -200,10 +203,7 @@ app:
     });
 
     test('uses load() convenience method', () async {
-      await MayrConfig.load(
-        yamlPath: testConfigPath,
-        envPath: testEnvPath,
-      );
+      await MayrConfig.load(yamlPath: testConfigPath, envPath: testEnvPath);
 
       expect(MayrConfig.get('app.name'), equals('TestApp'));
       expect(MayrConfig.get('app.env'), equals('testing'));

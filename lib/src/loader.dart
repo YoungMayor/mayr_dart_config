@@ -41,7 +41,10 @@ class MayrConfig {
   /// ```dart
   /// await MayrConfig.loadFromYaml('config.yaml');
   /// ```
-  static Future<void> loadFromYaml(String path, [String envPath = '.env']) async {
+  static Future<void> loadFromYaml(
+    String path, [
+    String envPath = '.env',
+  ]) async {
     await _core.loadEnv(envPath);
     await _core.loadFromYaml(path);
   }
