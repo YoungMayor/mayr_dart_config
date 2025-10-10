@@ -15,7 +15,7 @@ Builder mayrConfigBuilder(BuilderOptions options) => MayrConfigBuilder();
 class MayrConfigBuilder implements Builder {
   @override
   final buildExtensions = const {
-    r'$lib$': ['config.g.dart']
+    r'$lib$': ['config.g.dart'],
   };
 
   @override
@@ -87,7 +87,8 @@ class MayrConfigBuilder implements Builder {
         // Leaf value - create a direct getter
         final dartType = _inferType(value);
         buffer.writeln(
-            "  static $dartType get $getterName => MayrConfig.get('$fullKey');");
+          "  static $dartType get $getterName => MayrConfig.get('$fullKey');",
+        );
       }
     });
 
@@ -111,15 +112,15 @@ class MayrConfigBuilder implements Builder {
   }
 
   /// Generate getters for nested configuration values.
-  void _generateNestedGetters(
-      StringBuffer buffer, YamlMap map, String prefix) {
+  void _generateNestedGetters(StringBuffer buffer, YamlMap map, String prefix) {
     map.forEach((key, value) {
       final getterName = _toCamelCase(key.toString());
       final fullKey = '$prefix.$key';
       final dartType = _inferType(value);
 
       buffer.writeln(
-          "  $dartType get $getterName => MayrConfig.get('$fullKey');");
+        "  $dartType get $getterName => MayrConfig.get('$fullKey');",
+      );
     });
   }
 
@@ -141,9 +142,11 @@ class MayrConfigBuilder implements Builder {
 
     return input
         .split(RegExp(r'[_\-\s]'))
-        .map((word) => word.isEmpty
-            ? ''
-            : word[0].toUpperCase() + word.substring(1).toLowerCase())
+        .map(
+          (word) => word.isEmpty
+              ? ''
+              : word[0].toUpperCase() + word.substring(1).toLowerCase(),
+        )
         .join('');
   }
 
