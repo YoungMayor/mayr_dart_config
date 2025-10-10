@@ -65,11 +65,28 @@ Future<void> main() async {
 
 For better IDE support and type safety:
 
+### 1. Add build_runner to dev_dependencies
+
+```yaml
+dev_dependencies:
+  build_runner: ^2.4.15
+```
+
+### 2. Create build.yaml in project root
+
+```yaml
+targets:
+  $default:
+    sources:
+      - lib/**
+      - config.yaml
+```
+
+### 3. Run the generator
+
 ```bash
 dart run build_runner build
 ```
-
-> **Note**: The generator looks for `config.yaml` in your project root. Make sure it exists before running the generator.
 
 This creates `lib/config.g.dart`:
 

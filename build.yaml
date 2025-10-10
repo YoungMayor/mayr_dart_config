@@ -12,6 +12,6 @@ builders:
     import: "package:mayr_config/src/generator.dart"
     builder_factories: ["mayrConfigBuilder"]
     build_extensions: {r"$lib$": ["config.g.dart"]}
-    auto_apply: root_package
+    auto_apply: dependents
     build_to: source
     runs_before: []

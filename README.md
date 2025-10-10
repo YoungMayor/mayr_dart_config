@@ -93,15 +93,32 @@ Future<void> main() async {
 
 ## 🧠 Type-Safe Access (Code Generation)
 
-To get autocompletion and type-safety, run:
+### Setup for Code Generation
+
+1. Add `build_runner` to your `dev_dependencies`:
+
+```yaml
+dev_dependencies:
+  build_runner: ^2.4.15
+```
+
+2. Create a `build.yaml` file in your project root:
+
+```yaml
+targets:
+  $default:
+    sources:
+      - lib/**
+      - config.yaml  # Include your config file as a source
+```
+
+3. Run the code generator:
 
 ```bash
 dart run build_runner build
 ```
 
-> **Note**: Make sure your `config.yaml` is in the project root. If you're using this package as a dependency, the code generation will work automatically when you run `build_runner` in your project.
-
-This will generate a file like `config.g.dart` containing structured accessors:
+This will generate a `lib/config.g.dart` file containing structured accessors:
 
 ```dart
 // config.g.dart
