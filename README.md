@@ -93,37 +93,64 @@ Future<void> main() async {
 
 ## 🧠 Type-Safe Access (Code Generation)
 
-To get autocompletion and type-safety, run:
+### Setup for Code Generation
+
+1. Add `build_runner` to your `dev_dependencies`:
+
+```yaml
+dev_dependencies:
+  build_runner: ^2.4.15
+```
+
+2. **(Required)** Create a `build.yaml` file in your project root:
+
+```yaml
+targets:
+  $default:
+    sources:
+      - $package$
+      - lib/**
+      - config.yaml  # Include your config file as a source
+```
+
+> **Note**: The `build.yaml` file is required for build_runner to access your `config.yaml`. This is a standard build_runner requirement and cannot be automated by the package.
+
+3. Run the code generator:
 
 ```bash
 dart run build_runner build
 ```
 
-This will generate a file like `config.g.dart` containing structured accessors:
+This will generate a `lib/config.g.dart` file with a centralized `Config` class:
 
 ```dart
 // config.g.dart
-class AppConfig {
-  static const app = _App();
-  static const api = _Api();
-  static const database = _Database();
+class Config {
+  Config._();
+
+  static final app = _AppConfig();
+  static final api = _ApiConfig();
+  static final database = _DatabaseConfig();
 }
 
-class _App {
-  const _App();
+class _AppConfig {
+  const _AppConfig();
+
   String get name => MayrConfig.get('app.name');
   String get env => MayrConfig.get('app.env');
   bool get debug => MayrConfig.get('app.debug');
 }
 
-class _Api {
-  const _Api();
+class _ApiConfig {
+  const _ApiConfig();
+
   String get baseUrl => MayrConfig.get('api.baseUrl');
   int get timeout => MayrConfig.get('api.timeout');
 }
 
-class _Database {
-  const _Database();
+class _DatabaseConfig {
+  const _DatabaseConfig();
+
   String get host => MayrConfig.get('database.host');
   int get port => MayrConfig.get('database.port');
   String get username => MayrConfig.get('database.username');
@@ -134,8 +161,9 @@ class _Database {
 Now, you can do:
 
 ```dart
-print(AppConfig.api.baseUrl);
-print(AppConfig.database.username);
+print(Config.app.name);
+print(Config.api.baseUrl);
+print(Config.database.username);
 ```
 
 ✅ No more magic strings

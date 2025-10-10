@@ -1,0 +1,15 @@
+app:
+  name: MyApp
+  env: ${APP_ENV}
+  debug: true
+  locale: en
+
+api:
+  baseUrl: ${API_URL}
+  timeout: 5000
+
+database:
+  host: localhost
+  port: 3306
+  username: root
+  password: ${DB_PASSWORD}
