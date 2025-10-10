@@ -3,6 +3,6 @@
 /// More dartdocs go here.
 library;
 
-export 'src/mayr_dart_config_base.dart';
+export 'src/mayr_config_base.dart';
 
 // TODO: Export any libraries intended for clients of this package.
