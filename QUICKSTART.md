@@ -66,8 +66,10 @@ Future<void> main() async {
 For better IDE support and type safety:
 
 ```bash
-dart run tool/generate_config.dart
+dart run build_runner build
 ```
+
+> **Note**: The generator looks for `config.yaml` in your project root. Make sure it exists before running the generator.
 
 This creates `lib/config.g.dart`:
 

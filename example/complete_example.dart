@@ -110,7 +110,7 @@ Future<void> main() async {
   print('  2. Check key existence before accessing in critical paths');
   print('  3. Use .mayrConfig() for cleaner code');
   print('  4. Generate type-safe accessors with:');
-  print('     dart run tool/generate_config.dart');
+  print('     dart run build_runner build');
   print('  5. Keep sensitive data in .env files');
   print('  6. Use reload() for hot-reloading during development\n');
 

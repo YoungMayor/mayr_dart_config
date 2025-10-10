@@ -16,7 +16,7 @@ This document verifies that all requirements for v1.0.0 have been met.
 
 ## ✅ Code Generation
 
-- [x] Standalone generator tool (`tool/generate_config.dart`)
+- [x] build_runner-based code generator (`lib/src/generator.dart`)
 - [x] Type-safe accessor generation
 - [x] Type inference (String, int, bool, double, List, Map)
 - [x] PascalCase class names
@@ -72,7 +72,6 @@ This document verifies that all requirements for v1.0.0 have been met.
 - [x] DESIGN.md with architecture details
 - [x] CHANGELOG.md with v1.0.0 release notes
 - [x] QUICKSTART.md for quick onboarding
-- [x] tool/README.md for generator documentation
 - [x] Inline documentation for all public APIs
 - [x] LICENSE file (MIT)
 
@@ -100,7 +99,11 @@ mayr_config/
 │   │   ├── core.dart          # MayrConfigCore singleton
 │   │   ├── env.dart           # MayrEnv loader
 │   │   ├── loader.dart        # MayrConfig public API
-│   │   └── extension.dart     # String extension
+│   │   ├── core.dart          # MayrConfigCore singleton
+│   │   ├── env.dart           # MayrEnv loader
+│   │   ├── loader.dart        # MayrConfig public API
+│   │   ├── extension.dart     # String extension
+│   │   └── generator.dart     # build_runner code generator
 │   └── mayr_config.dart       # Main export
 ├── example/
 │   ├── config.yaml
@@ -110,9 +113,7 @@ mayr_config/
 │   └── complete_example.dart
 ├── test/
 │   └── mayr_dart_config_test.dart
-├── tool/
-│   ├── generate_config.dart
-│   └── README.md
+├── build.yaml
 ├── .gitignore
 ├── analysis_options.yaml
 ├── CHANGELOG.md
@@ -127,8 +128,11 @@ mayr_config/
 
 - `yaml: ^3.1.3` - YAML parsing
 - `path: ^1.9.1` - Path utilities
+- `build: ^2.4.2` - Build system (for code generation)
+- `source_gen: ^2.0.0` - Code generation utilities
 
 Dev Dependencies:
+- `build_runner: ^2.4.15` - Code generation runner
 - `lints: ^6.0.0` - Dart linting
 - `test: ^1.25.6` - Testing framework
 
@@ -145,7 +149,7 @@ Dev Dependencies:
 ```
 ✅ 23/23 tests passed
 ✅ 0 linting issues
-✅ 4 source files
+✅ 5 source files (including generator)
 ✅ 1 test file
 ✅ 3 example files
 ✅ 4 documentation files

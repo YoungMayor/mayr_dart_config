@@ -10,7 +10,7 @@ A flexible, type-safe, and environment-aware configuration system for Dart and F
 - ✅ **Environment Variables**: Support for `.env` files with `${VAR}` interpolation in YAML
 - ✅ **Dot Notation Access**: Intuitive `MayrConfig.get('api.baseUrl')` syntax
 - ✅ **String Extension**: Convenient `'api.baseUrl'.mayrConfig()` shorthand
-- ✅ **Type-Safe Generation**: Generate typed accessors with `dart run tool/generate_config.dart`
+- ✅ **Type-Safe Generation**: Generate typed accessors with `dart run build_runner build`
 - ✅ **Hot Reloadable**: Reload configuration at runtime with `MayrConfig.reload()`
 - ✅ **Cross-Platform**: Works in both Dart and Flutter applications
 
@@ -20,7 +20,7 @@ A flexible, type-safe, and environment-aware configuration system for Dart and F
 - `MayrConfig`: Public API for loading and accessing configuration
 - `MayrEnv`: Environment variable loader for `.env` files
 - `MayrConfigStringExt`: String extension for convenient access
-- Code Generator: Tool for creating type-safe configuration classes
+- `MayrConfigGenerator`: build_runner-based code generator for type-safe configuration classes
 
 #### API Methods
 

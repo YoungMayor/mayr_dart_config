@@ -1,0 +1,17 @@
+targets:
+  $default:
+    sources:
+      - lib/**
+      - config.yaml
+    builders:
+      mayr_config|mayr_config_builder:
+        enabled: true
+
+builders:
+  mayr_config_builder:
+    import: "package:mayr_config/src/generator.dart"
+    builder_factories: ["mayrConfigBuilder"]
+    build_extensions: {r"$lib$": ["config.g.dart"]}
+    auto_apply: root_package
+    build_to: source
+    runs_before: []
