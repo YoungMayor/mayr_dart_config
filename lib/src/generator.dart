@@ -54,7 +54,9 @@ class MayrConfigBuilder implements Builder {
     buffer.writeln();
 
     // Generate main Config class with static getters for each section
-    buffer.writeln('/// Main configuration class providing access to all config sections.');
+    buffer.writeln(
+      '/// Main configuration class providing access to all config sections.',
+    );
     buffer.writeln('class Config {');
     buffer.writeln('  Config._();');
     buffer.writeln();

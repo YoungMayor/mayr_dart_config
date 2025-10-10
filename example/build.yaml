@@ -1,5 +1,6 @@
 targets:
   $default:
     sources:
+      - $package$
       - lib/**
       - config.yaml

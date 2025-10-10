@@ -108,6 +108,7 @@ dev_dependencies:
 targets:
   $default:
     sources:
+      - $package$
       - lib/**
       - config.yaml  # Include your config file as a source
 ```
@@ -126,7 +127,7 @@ This will generate a `lib/config.g.dart` file with a centralized `Config` class:
 // config.g.dart
 class Config {
   Config._();
-  
+
   static final app = _AppConfig();
   static final api = _ApiConfig();
   static final database = _DatabaseConfig();
@@ -134,7 +135,7 @@ class Config {
 
 class _AppConfig {
   const _AppConfig();
-  
+
   String get name => MayrConfig.get('app.name');
   String get env => MayrConfig.get('app.env');
   bool get debug => MayrConfig.get('app.debug');
@@ -142,14 +143,14 @@ class _AppConfig {
 
 class _ApiConfig {
   const _ApiConfig();
-  
+
   String get baseUrl => MayrConfig.get('api.baseUrl');
   int get timeout => MayrConfig.get('api.timeout');
 }
 
 class _DatabaseConfig {
   const _DatabaseConfig();
-  
+
   String get host => MayrConfig.get('database.host');
   int get port => MayrConfig.get('database.port');
   String get username => MayrConfig.get('database.username');
