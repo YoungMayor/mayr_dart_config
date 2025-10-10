@@ -93,10 +93,16 @@ Future<void> main() async {
 
 ## 🧠 Type-Safe Access (Code Generation)
 
-To get autocompletion and type-safety, run:
+To get autocompletion and type-safety, run the code generator:
 
 ```bash
-dart run build_runner build
+dart run tool/generate_config.dart
+```
+
+Or specify custom paths:
+
+```bash
+dart run tool/generate_config.dart config.yaml lib/config.g.dart
 ```
 
 This will generate a file like `config.g.dart` containing structured accessors:
@@ -104,38 +110,36 @@ This will generate a file like `config.g.dart` containing structured accessors:
 ```dart
 // config.g.dart
 class AppConfig {
-  static const app = _App();
-  static const api = _Api();
-  static const database = _Database();
+  AppConfig._();
+  
+  static String get name => MayrConfig.get('app.name');
+  static String get env => MayrConfig.get('app.env');
+  static bool get debug => MayrConfig.get('app.debug');
 }
 
-class _App {
-  const _App();
-  String get name => MayrConfig.get('app.name');
-  String get env => MayrConfig.get('app.env');
-  bool get debug => MayrConfig.get('app.debug');
+class ApiConfig {
+  ApiConfig._();
+  
+  static String get baseUrl => MayrConfig.get('api.baseUrl');
+  static int get timeout => MayrConfig.get('api.timeout');
 }
 
-class _Api {
-  const _Api();
-  String get baseUrl => MayrConfig.get('api.baseUrl');
-  int get timeout => MayrConfig.get('api.timeout');
-}
-
-class _Database {
-  const _Database();
-  String get host => MayrConfig.get('database.host');
-  int get port => MayrConfig.get('database.port');
-  String get username => MayrConfig.get('database.username');
-  String get password => MayrConfig.get('database.password');
+class DatabaseConfig {
+  DatabaseConfig._();
+  
+  static String get host => MayrConfig.get('database.host');
+  static int get port => MayrConfig.get('database.port');
+  static String get username => MayrConfig.get('database.username');
+  static String get password => MayrConfig.get('database.password');
 }
 ```
 
 Now, you can do:
 
 ```dart
-print(AppConfig.api.baseUrl);
-print(AppConfig.database.username);
+print(AppConfig.name);
+print(ApiConfig.baseUrl);
+print(DatabaseConfig.username);
 ```
 
 ✅ No more magic strings
