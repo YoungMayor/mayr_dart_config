@@ -34,5 +34,7 @@ migrate_working_dir/
 # Generated configuration files
 *.g.dart
 !example/lib/config.g.dart
-.env
 !.env.example
+node_modules
+
+.env
