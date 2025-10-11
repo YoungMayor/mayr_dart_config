@@ -60,28 +60,177 @@ list:
       await testDir.delete(recursive: true);
     }
     MayrConfig.clear();
+    MayrConfig.clearValidators();
   });
 
-  group('MayrEnv', () {
-    test('loads environment variables from .env file', () async {
-      await MayrEnv.load(testEnvPath);
+  group('MayrConfig - Basic Loading', () {
+    test('loads configuration from YAML file', () async {
+      await MayrConfig.load(testConfigPath, testEnvPath);
 
-      expect(MayrEnv.get('TEST_ENV'), equals('testing'));
-      expect(MayrEnv.get('TEST_URL'), equals('https://test.example.com'));
-      expect(MayrEnv.get('TEST_PASSWORD'), equals('secret123'));
+      expect(MayrConfig.get('app.name'), equals('TestApp'));
+      expect(MayrConfig.get('app.debug'), equals(true));
+      expect(MayrConfig.get('app.version'), equals('1.0.0'));
     });
 
-    test('returns null for non-existent keys', () async {
-      await MayrEnv.load(testEnvPath);
-      expect(MayrEnv.get('NON_EXISTENT'), isNull);
+    test('interpolates environment variables', () async {
+      await MayrConfig.load(testConfigPath, testEnvPath);
+
+      expect(MayrConfig.get('app.env'), equals('testing'));
+      expect(MayrConfig.get('api.baseUrl'), equals('https://test.example.com'));
+      expect(MayrConfig.get('database.password'), equals('secret123'));
+    });
+
+    test('accesses nested values with dot notation', () async {
+      await MayrConfig.load(testConfigPath, testEnvPath);
+
+      expect(MayrConfig.get('database.host'), equals('localhost'));
+      expect(MayrConfig.get('database.port'), equals(5432));
+      expect(
+        MayrConfig.get('nested.level1.level2.value'),
+        equals('deep-value'),
+      );
+    });
+
+    test('returns default value for missing keys', () async {
+      await MayrConfig.load(testConfigPath, testEnvPath);
+
+      expect(MayrConfig.get('missing.key', 'default'), equals('default'));
+      expect(MayrConfig.get('another.missing', 42), equals(42));
+    });
+
+    test('checks if key exists', () async {
+      await MayrConfig.load(testConfigPath, testEnvPath);
+
+      expect(MayrConfig.has('app.name'), isTrue);
+      expect(MayrConfig.has('missing.key'), isFalse);
+    });
+
+    test('returns all configuration keys', () async {
+      await MayrConfig.load(testConfigPath, testEnvPath);
+
+      final keys = MayrConfig.keys().toList();
+
+      expect(keys, contains('app.name'));
+      expect(keys, contains('api.baseUrl'));
+      expect(keys, contains('database.port'));
+      expect(keys.length, greaterThan(5));
     });
 
     test('handles missing .env file gracefully', () async {
-      await MayrEnv.load('nonexistent.env');
-      // Should not throw
+      await MayrConfig.load(testConfigPath, 'nonexistent.env');
+      
+      // Should still load config
+      expect(MayrConfig.has('app.name'), isTrue);
     });
 
-    test('handles quotes in values', () async {
+    test('throws error for non-existent config file', () async {
+      expect(
+        () => MayrConfig.load('nonexistent.yaml'),
+        throwsA(isA<ConfigFileNotFound>()),
+      );
+    });
+
+    test('clears configuration', () async {
+      await MayrConfig.load(testConfigPath, testEnvPath);
+
+      expect(MayrConfig.has('app.name'), isTrue);
+
+      MayrConfig.clear();
+
+      expect(MayrConfig.has('app.name'), isFalse);
+    });
+  });
+
+  group('MayrConfig - Type-Safe Access', () {
+    test('getValue<T> returns correct types', () async {
+      await MayrConfig.load(testConfigPath, testEnvPath);
+
+      // String
+      expect(MayrConfig.getValue<String>('app.name'), isA<String>());
+      expect(MayrConfig.getValue<String>('app.name'), equals('TestApp'));
+
+      // Boolean
+      expect(MayrConfig.getValue<bool>('app.debug'), isA<bool>());
+      expect(MayrConfig.getValue<bool>('app.debug'), equals(true));
+
+      // Integer
+      expect(MayrConfig.getValue<int>('api.timeout'), isA<int>());
+      expect(MayrConfig.getValue<int>('api.timeout'), equals(3000));
+
+      // String (from version number)
+      expect(MayrConfig.getValue<String>('app.version'), isA<String>());
+      expect(MayrConfig.getValue<String>('app.version'), equals('1.0.0'));
+    });
+
+    test('getValue<T> throws ConfigKeyNotFound for missing keys', () async {
+      await MayrConfig.load(testConfigPath, testEnvPath);
+
+      expect(
+        () => MayrConfig.getValue<String>('missing.key'),
+        throwsA(isA<ConfigKeyNotFound>()),
+      );
+    });
+
+    test('getValue<T> throws ConfigTypeMismatch for wrong types', () async {
+      await MayrConfig.load(testConfigPath, testEnvPath);
+
+      expect(
+        () => MayrConfig.getValue<int>('app.name'), // name is String
+        throwsA(isA<ConfigTypeMismatch>()),
+      );
+
+      expect(
+        () => MayrConfig.getValue<String>('api.timeout'), // timeout is int
+        throwsA(isA<ConfigTypeMismatch>()),
+      );
+    });
+
+    test('handles list values', () async {
+      await MayrConfig.load(testConfigPath, testEnvPath);
+
+      final listValue = MayrConfig.get('list');
+      expect(listValue, isA<List>());
+      expect(listValue.length, equals(3));
+      expect(listValue, contains('item1'));
+      expect(listValue, contains('item2'));
+      expect(listValue, contains('item3'));
+    });
+  });
+
+  group('String Extension', () {
+    test('provides .config property', () async {
+      await MayrConfig.load(testConfigPath, testEnvPath);
+
+      expect('app.name'.config, equals('TestApp'));
+      expect('api.timeout'.config, equals(3000));
+      expect('database.username'.config, equals('testuser'));
+    });
+
+    test('provides configValue<T>() method for type-safe access', () async {
+      await MayrConfig.load(testConfigPath, testEnvPath);
+
+      expect('app.name'.configValue<String>(), equals('TestApp'));
+      expect('api.timeout'.configValue<int>(), equals(3000));
+      expect('app.debug'.configValue<bool>(), equals(true));
+    });
+  });
+
+  group('Environment Variables', () {
+    test('loads environment variables', () async {
+      await MayrConfig.load(testConfigPath, testEnvPath);
+
+      expect(MayrConfig.env('TEST_ENV'), equals('testing'));
+      expect(MayrConfig.env('TEST_URL'), equals('https://test.example.com'));
+      expect(MayrConfig.env('TEST_PASSWORD'), equals('secret123'));
+    });
+
+    test('returns null for non-existent env keys', () async {
+      await MayrConfig.load(testConfigPath, testEnvPath);
+      
+      expect(MayrConfig.env('NON_EXISTENT'), isNull);
+    });
+
+    test('handles quotes in env values', () async {
       final quotedEnvPath = '${testDir.path}/quoted.env';
       await File(quotedEnvPath).writeAsString('''
 SINGLE_QUOTED='value with spaces'
@@ -89,15 +238,202 @@ DOUBLE_QUOTED="another value"
 NO_QUOTES=simple
 ''');
 
-      await MayrEnv.load(quotedEnvPath);
+      await MayrConfig.load(testConfigPath, quotedEnvPath);
 
-      expect(MayrEnv.get('SINGLE_QUOTED'), equals('value with spaces'));
-      expect(MayrEnv.get('DOUBLE_QUOTED'), equals('another value'));
-      expect(MayrEnv.get('NO_QUOTES'), equals('simple'));
+      expect(MayrConfig.env('SINGLE_QUOTED'), equals('value with spaces'));
+      expect(MayrConfig.env('DOUBLE_QUOTED'), equals('another value'));
+      expect(MayrConfig.env('NO_QUOTES'), equals('simple'));
     });
 
-    test('ignores comments and empty lines', () async {
+    test('ignores comments and empty lines in env', () async {
       final commentEnvPath = '${testDir.path}/comments.env';
+      await File(commentEnvPath).writeAsString('''
+# This is a comment
+KEY1=value1
+
+# Another comment
+KEY2=value2
+
+''');
+
+      await MayrConfig.load(testConfigPath, commentEnvPath);
+
+      expect(MayrConfig.env('KEY1'), equals('value1'));
+      expect(MayrConfig.env('KEY2'), equals('value2'));
+    });
+
+    test('handles environment variable not found in interpolation', () async {
+      final missingEnvConfigPath = '${testDir.path}/missing_env.yaml';
+      await File(missingEnvConfigPath).writeAsString('''
+app:
+  url: \${MISSING_ENV_VAR}
+''');
+
+      await MayrConfig.load(missingEnvConfigPath);
+
+      // Should keep the placeholder when env var is not found
+      expect(MayrConfig.get('app.url'), equals('\${MISSING_ENV_VAR}'));
+    });
+
+    test('handles multiple environment variable interpolations', () async {
+      final multiEnvPath = '${testDir.path}/multi.env';
+      await File(multiEnvPath).writeAsString('''
+PROTOCOL=https
+DOMAIN=example.com
+PORT=8080
+''');
+
+      final multiConfigPath = '${testDir.path}/multi.yaml';
+      await File(multiConfigPath).writeAsString('''
+app:
+  url: \${PROTOCOL}://\${DOMAIN}:\${PORT}
+''');
+
+      await MayrConfig.load(multiConfigPath, multiEnvPath);
+
+      expect(MayrConfig.get('app.url'), equals('https://example.com:8080'));
+    });
+  });
+
+  group('Multiple Config Files', () {
+    test('loads multiple config files', () async {
+      final appConfigPath = '${testDir.path}/app.yaml';
+      final apiConfigPath = '${testDir.path}/api.yaml';
+
+      await File(appConfigPath).writeAsString('''
+app:
+  name: MultiFileApp
+  version: 2.0.0
+''');
+
+      await File(apiConfigPath).writeAsString('''
+api:
+  baseUrl: https://api.example.com
+  timeout: 10000
+''');
+
+      await MayrConfig.load([appConfigPath, apiConfigPath], testEnvPath);
+
+      expect(MayrConfig.get('app.name'), equals('MultiFileApp'));
+      expect(MayrConfig.get('app.version'), equals('2.0.0'));
+      expect(MayrConfig.get('api.baseUrl'), equals('https://api.example.com'));
+      expect(MayrConfig.get('api.timeout'), equals(10000));
+    });
+
+    test('later files can override earlier files', () async {
+      final config1Path = '${testDir.path}/config1.yaml';
+      final config2Path = '${testDir.path}/config2.yaml';
+
+      await File(config1Path).writeAsString('''
+app:
+  name: FirstApp
+  version: 1.0.0
+''');
+
+      await File(config2Path).writeAsString('''
+app:
+  name: SecondApp
+''');
+
+      await MayrConfig.load([config1Path, config2Path]);
+
+      expect(MayrConfig.get('app.name'), equals('SecondApp'));
+      expect(MayrConfig.get('app.version'), equals('1.0.0'));
+    });
+  });
+
+  group('Validation', () {
+    test('RequiredKeysValidator ensures required keys exist', () async {
+      MayrConfig.addValidator(
+        RequiredKeysValidator(['app.name', 'api.baseUrl']),
+      );
+
+      await MayrConfig.load(testConfigPath, testEnvPath);
+
+      // Should pass validation
+      expect(MayrConfig.has('app.name'), isTrue);
+      expect(MayrConfig.has('api.baseUrl'), isTrue);
+    });
+
+    test('RequiredKeysValidator throws on missing keys', () async {
+      MayrConfig.addValidator(
+        RequiredKeysValidator(['app.name', 'missing.key']),
+      );
+
+      expect(
+        () => MayrConfig.load(testConfigPath, testEnvPath),
+        throwsA(isA<ConfigValidationError>()),
+      );
+    });
+
+    test('TypeValidator ensures correct types', () async {
+      MayrConfig.addValidator(
+        TypeValidator({
+          'app.name': String,
+          'api.timeout': int,
+          'app.debug': bool,
+        }),
+      );
+
+      await MayrConfig.load(testConfigPath, testEnvPath);
+
+      // Should pass validation
+      expect(MayrConfig.getValue<String>('app.name'), isA<String>());
+      expect(MayrConfig.getValue<int>('api.timeout'), isA<int>());
+      expect(MayrConfig.getValue<bool>('app.debug'), isA<bool>());
+    });
+
+    test('multiple validators run in order', () async {
+      MayrConfig.addValidator(
+        RequiredKeysValidator(['app.name']),
+      );
+      MayrConfig.addValidator(
+        TypeValidator({'app.name': String}),
+      );
+
+      await MayrConfig.load(testConfigPath, testEnvPath);
+
+      // Both validators should pass
+      expect(MayrConfig.has('app.name'), isTrue);
+      expect(MayrConfig.getValue<String>('app.name'), isA<String>());
+    });
+
+    test('clearValidators removes all validators', () async {
+      MayrConfig.addValidator(
+        RequiredKeysValidator(['missing.key']),
+      );
+
+      MayrConfig.clearValidators();
+
+      // Should load without validation error
+      await MayrConfig.load(testConfigPath, testEnvPath);
+      expect(MayrConfig.has('app.name'), isTrue);
+    });
+  });
+
+  group('Edge Cases', () {
+    test('handles empty YAML file', () async {
+      final emptyConfigPath = '${testDir.path}/empty.yaml';
+      await File(emptyConfigPath).writeAsString('');
+
+      await MayrConfig.load(emptyConfigPath, testEnvPath);
+
+      expect(MayrConfig.keys().length, equals(0));
+    });
+
+    test('handles YAML with only comments', () async {
+      final commentConfigPath = '${testDir.path}/comments.yaml';
+      await File(commentConfigPath).writeAsString('''
+# Just a comment
+# Another comment
+''');
+
+      await MayrConfig.load(commentConfigPath, testEnvPath);
+
+      expect(MayrConfig.keys().length, equals(0));
+    });
+  });
+}
       await File(commentEnvPath).writeAsString('''
 # This is a comment
 KEY1=value1

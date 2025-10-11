@@ -1,38 +1,73 @@
 import 'package:mayr_config/mayr_config.dart';
 
-/// Example demonstrating MayrConfig usage.
+/// Example demonstrating MayrConfig v2.0 usage with Proposal 4 architecture.
 ///
-/// This example shows how to load configuration from YAML and .env files,
-/// access values using different methods, and work with environment variables.
+/// This example shows how to:
+/// - Load configuration from multiple YAML files in config/ directory
+/// - Use environment variables with .env files
+/// - Access values with type-safe methods
+/// - Use validation
+/// - Work with the new unified API
 Future<void> main() async {
-  print('=== MayrConfig Example ===\n');
+  print('=== MayrConfig v2.0 Example ===\n');
 
-  // Load configuration from YAML file (also loads .env automatically)
-  await MayrConfig.loadFromYaml('example/config.yaml', 'example/.env');
+  // Add validators before loading (optional but recommended)
+  MayrConfig.addValidator(
+    RequiredKeysValidator(['app.name', 'api.baseUrl']),
+  );
 
-  print('--- Basic Access ---');
+  print('--- Loading Multiple Config Files ---');
+  // Load configuration from multiple YAML files
+  await MayrConfig.load([
+    'example/config/app.yaml',
+    'example/config/api.yaml',
+    'example/config/database.yaml',
+  ], 'example/.env');
+
+  print('✅ Configuration loaded successfully!\n');
+
+  print('--- Basic Dynamic Access ---');
   // Access configuration using MayrConfig.get()
   print('App Name: ${MayrConfig.get('app.name')}');
-  print('App Environment: ${MayrConfig.get('app.env')}');
+  print('App Environment: ${MayrConfig.get('app.environment')}');
   print('Debug Mode: ${MayrConfig.get('app.debug')}');
-  print('App Locale: ${MayrConfig.get('app.locale')}');
+  print('App Version: ${MayrConfig.get('app.version')}');
+
+  print('\n--- Type-Safe Access with getValue<T>() ---');
+  // Use getValue<T>() for type-safe access
+  final appName = MayrConfig.getValue<String>('app.name');
+  final timeout = MayrConfig.getValue<int>('api.timeout');
+  final debug = MayrConfig.getValue<bool>('app.debug');
+  final dbPort = MayrConfig.getValue<int>('database.port');
+
+  print('App Name (String): $appName');
+  print('API Timeout (int): $timeout ms');
+  print('Debug Mode (bool): $debug');
+  print('Database Port (int): $dbPort');
 
   print('\n--- Environment Variable Interpolation ---');
   // These values come from environment variables
   print('API Base URL: ${MayrConfig.get('api.baseUrl')}');
+  print('API Key: ${MayrConfig.get('api.apiKey')}');
   print('Database Password: ${MayrConfig.get('database.password')}');
 
+  print('\n--- Direct Environment Access ---');
+  print('APP_ENV: ${MayrConfig.env('APP_ENV')}');
+  print('API_URL: ${MayrConfig.env('API_URL')}');
+  print('DB_PASSWORD: ${MayrConfig.env('DB_PASSWORD')}');
+
   print('\n--- Using String Extension ---');
-  // Access configuration using the convenient .mayrConfig() extension
-  print('API Timeout: ${'api.timeout'.mayrConfig()}');
-  print('Database Host: ${'database.host'.mayrConfig()}');
-  print('Database Port: ${'database.port'.mayrConfig()}');
-  print('Database Username: ${'database.username'.mayrConfig()}');
+  // Access configuration using the convenient .config extension
+  print('API Timeout: ${'api.timeout'.config}');
+  print('Database Host: ${'database.host'.config}');
+  print('Database Username: ${'database.username'.config}');
+
+  // Type-safe extension method
+  print('Database Pool Size (int): ${'database.poolSize'.configValue<int>()}');
 
   print('\n--- Default Values ---');
   // Provide default values for missing keys
   print('Missing Key: ${MayrConfig.get('missing.key', 'default-value')}');
-  print('Another Missing: ${'another.missing'.mayrConfig('fallback')}');
 
   print('\n--- Configuration Utilities ---');
   // Check if a key exists
@@ -40,15 +75,36 @@ Future<void> main() async {
   print('Has missing.key? ${MayrConfig.has('missing.key')}');
 
   // Get all configuration keys
-  print('\nAll Keys:');
-  for (var key in MayrConfig.keys()) {
+  print('\nAll Configuration Keys (${MayrConfig.keys().length} total):');
+  for (var key in MayrConfig.keys().take(10)) {
     print('  - $key: ${MayrConfig.get(key)}');
   }
+  if (MayrConfig.keys().length > 10) {
+    print('  ... and ${MayrConfig.keys().length - 10} more');
+  }
 
-  print('\n--- Reload Configuration ---');
-  // Reload configuration at runtime
-  await MayrConfig.reload();
-  print('Configuration reloaded successfully!');
+  print('\n--- Type Safety Demo ---');
+  try {
+    // This will throw ConfigTypeMismatch because 'app.name' is a String
+    MayrConfig.getValue<int>('app.name');
+  } catch (e) {
+    print('✅ Type mismatch caught: ${e.runtimeType}');
+  }
+
+  try {
+    // This will throw ConfigKeyNotFound
+    MayrConfig.getValue<String>('nonexistent.key');
+  } catch (e) {
+    print('✅ Missing key caught: ${e.runtimeType}');
+  }
+
+  print('\n--- Validation Demo ---');
+  print('✅ All validators passed during load!');
+  print('   Required keys validated: app.name, api.baseUrl');
 
   print('\n=== Example Complete ===');
+  print('\n💡 Next Steps:');
+  print('   1. Run: dart run build_runner build');
+  print('   2. Import generated files: config/app.g.dart, config/api.g.dart');
+  print('   3. Use type-safe nested syntax: App.app.name, Api.api.baseUrl');
 }

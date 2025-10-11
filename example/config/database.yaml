@@ -1,0 +1,7 @@
+database:
+  host: localhost
+  port: 5432
+  name: myapp_db
+  username: admin
+  password: ${DB_PASSWORD}
+  poolSize: 10

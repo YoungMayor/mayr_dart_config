@@ -1,0 +1,10 @@
+app:
+  name: MyAwesomeApp
+  version: 1.0.0
+  debug: true
+  environment: ${APP_ENV}
+  
+features:
+  analytics: true
+  darkMode: false
+  maxUploadSize: 10485760

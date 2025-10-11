@@ -1,0 +1,5 @@
+api:
+  baseUrl: ${API_URL}
+  timeout: 5000
+  retryAttempts: 3
+  apiKey: ${API_KEY}
