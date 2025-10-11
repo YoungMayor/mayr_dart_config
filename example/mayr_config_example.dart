@@ -1,6 +1,6 @@
 import 'package:mayr_config/mayr_config.dart';
 
-/// Example demonstrating MayrConfig v2.0 usage with Proposal 4 architecture.
+/// Example demonstrating MayrConfig v1.0.0 usage with Proposal 4 architecture.
 ///
 /// This example shows how to:
 /// - Load configuration from multiple YAML files in config/ directory
@@ -9,7 +9,7 @@ import 'package:mayr_config/mayr_config.dart';
 /// - Use validation
 /// - Work with the new unified API
 Future<void> main() async {
-  print('=== MayrConfig v2.0 Example ===\n');
+  print('=== MayrConfig v1.0.0 Example ===\n');
 
   // Add validators before loading (optional but recommended)
   MayrConfig.addValidator(
@@ -48,7 +48,6 @@ Future<void> main() async {
   print('\n--- Environment Variable Interpolation ---');
   // These values come from environment variables
   print('API Base URL: ${MayrConfig.get('api.baseUrl')}');
-  print('API Key: ${MayrConfig.get('api.apiKey')}');
   print('Database Password: ${MayrConfig.get('database.password')}');
 
   print('\n--- Direct Environment Access ---');
