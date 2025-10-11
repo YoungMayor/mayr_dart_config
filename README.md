@@ -15,21 +15,24 @@
 
 # 🧩 mayr_config
 
-**MayrConfig** brings clean configuration management to Dart and Flutter.
-Define your app settings in a clean, human-readable `config.yaml` file, use environment variables with `.env`, and even generate **type-safe accessors** for autocompletion and compile-time safety.
+**MayrConfig** brings clean configuration management to Dart and Flutter with a focus on **type safety**, **environment variable support**, and **excellent developer experience**.
 
-Simple, elegant, and built for real-world apps.
+Organize your app settings in clean YAML files in the `config/` directory, use environment variables with `.env`, and enjoy **type-safe nested accessors** with perfect autocomplete.
+
+Built with the **Minimal Core with Smart Codegen** architecture for maximum simplicity and maintainability.
 
 ---
 
-## 🚀 Features
+## ✨ Features
 
-* ✅ Load configuration from `config.yaml`
-* ✅ Support for environment variables (`.env`)
-* ✅ Dot-notation access (`MayrConfig.get('api.baseUrl')`)
-* ✅ Optional **code generation** for type-safe accessors
-* ✅ Hot reloadable at runtime (re-load file anytime)
-* ✅ Works in both **Dart** and **Flutter**
+* 🎯 **Type-Safe Access** - Compile-time safety through code generation + runtime type checking
+* 🌍 **Environment Variables** - Clean `.env` integration with `${VAR}` interpolation
+* 📁 **Multiple Config Files** - Organize configs: `config/app.yaml`, `config/api.yaml`, etc.
+* ✅ **Built-in Validation** - Validate required keys and types on load
+* 🔄 **Simple API** - One class (`MayrConfig`) does everything
+* 🎨 **Nested Structure** - Beautiful syntax: `Config.api.timeout`
+* 📝 **Dot-notation Access** - Dynamic access: `MayrConfig.get('api.baseUrl')`
+* 🚀 **Works Everywhere** - Dart CLI, Flutter mobile, web, and desktop
 
 ---
 
@@ -45,59 +48,498 @@ For Flutter:
 flutter pub add mayr_config
 ```
 
----
-
-## ⚙️ Usage
-
-### 1. Create a `config.yaml`
+For code generation (optional but recommended):
 
 ```yaml
-# config.yaml
-app:
-  name: MyApp
-  env: ${APP_ENV}
-  debug: true
+dev_dependencies:
+  build_runner: ^2.4.0
+```
 
+---
+
+## 🚀 Quick Start
+
+### 1. Create Config Files
+
+Create a `config/` directory with your YAML files:
+
+**config/app.yaml**
+```yaml
+app:
+  name: MyAwesomeApp
+  version: 1.0.0
+  debug: true
+  environment: ${APP_ENV}
+```
+
+**config/api.yaml**
+```yaml
 api:
   baseUrl: ${API_URL}
   timeout: 5000
-
-database:
-  host: localhost
-  port: 3306
-  username: root
-  password: secret
+  retryAttempts: 3
 ```
 
-### 2. Create a `.env`
+### 2. Create `.env` File
 
-```
-APP_ENV=production
+```.env
+APP_ENV=development
 API_URL=https://api.example.com
 ```
 
-### 3. Load your configuration
+### 3. Load Configuration
 
 ```dart
 import 'package:mayr_config/mayr_config.dart';
 
 Future<void> main() async {
-  await MayrConfig.loadFromYaml('config.yaml');
+  // Load multiple config files
+  await MayrConfig.load([
+    'config/app.yaml',
+    'config/api.yaml',
+  ], '.env');
 
-  print(MayrConfig.get('app.name')); // MyApp
-  print('api.baseUrl'.mayrConfig()); // https://api.example.com
+  // Dynamic access
+  print(MayrConfig.get('app.name')); // MyAwesomeApp
+  print('api.timeout'.config); // 5000
+
+  // Type-safe access
+  final timeout = MayrConfig.getValue<int>('api.timeout');
+  final debug = MayrConfig.getValue<bool>('app.debug');
 }
 ```
 
 ---
 
-## 🧠 Type-Safe Access (Code Generation)
+## 🎯 Type-Safe Access with Code Generation
 
-### Setup for Code Generation
+Generate type-safe accessors for the best developer experience!
 
-1. Add `build_runner` to your `dev_dependencies`:
+### 1. Run Code Generator
+
+```bash
+dart run build_runner build
+```
+
+This generates files matching your YAML names:
+- `config/app.yaml` → `config/app.g.dart`
+- `config/api.yaml` → `config/api.g.dart`
+
+### 2. Import and Use Generated Code
+
+```dart
+import 'config/app.g.dart';
+import 'config/api.g.dart';
+
+void main() async {
+  await MayrConfig.load([
+    'config/app.yaml',
+    'config/api.yaml',
+  ], '.env');
+
+  // Beautiful type-safe nested syntax with autocomplete! ✨
+  final appName = App.app.name;           // String
+  final version = App.app.version;        // String
+  final apiUrl = Api.api.baseUrl;         // String
+  final timeout = Api.api.timeout;        // int
+  final retries = Api.api.retryAttempts;  // int
+
+  // Your IDE knows all the types!
+  // Perfect autocomplete!
+  // Refactoring is safe!
+}
+```
+
+**Generated code example** (`config/app.g.dart`):
+```dart
+class App {
+  App._();
+  
+  static final app = _App();
+}
+
+class _App {
+  const _App();
+  
+  String get name => MayrConfig.getValue<String>('app.name');
+  String get version => MayrConfig.getValue<String>('app.version');
+  bool get debug => MayrConfig.getValue<bool>('app.debug');
+  String get environment => MayrConfig.getValue<String>('app.environment');
+}
+```
+
+---
+
+## ✅ Built-in Validation
+
+Add validators before loading to catch configuration errors early:
+
+```dart
+import 'package:mayr_config/mayr_config.dart';
+
+Future<void> main() async {
+  // Ensure required keys exist
+  MayrConfig.addValidator(
+    RequiredKeysValidator(['app.name', 'api.baseUrl', 'api.timeout']),
+  );
+
+  // Validate types
+  MayrConfig.addValidator(
+    TypeValidator({
+      'app.name': String,
+      'app.debug': bool,
+      'api.timeout': int,
+    }),
+  );
+
+  // Load config - will throw ConfigValidationError if validation fails
+  await MayrConfig.load([
+    'config/app.yaml',
+    'config/api.yaml',
+  ], '.env');
+}
+```
+
+---
+
+## 🌍 Environment Variables
+
+### Using Environment Variables in YAML
+
+Use `${VAR_NAME}` syntax in your YAML files:
 
 ```yaml
+api:
+  baseUrl: ${API_URL}
+  apiKey: ${API_KEY}
+
+database:
+  password: ${DB_PASSWORD}
+```
+
+### Direct Environment Access
+
+```dart
+// Get environment variable directly
+final apiUrl = MayrConfig.env('API_URL');
+final dbPassword = MayrConfig.env('DB_PASSWORD');
+
+// Get all environment variables
+final allEnv = MayrConfig.allEnv;
+```
+
+---
+
+## 📖 API Reference
+
+### Loading Configuration
+
+```dart
+// Single file
+await MayrConfig.load('config.yaml', '.env');
+
+// Multiple files (recommended)
+await MayrConfig.load([
+  'config/app.yaml',
+  'config/api.yaml',
+  'config/database.yaml',
+], '.env');
+
+// Multiple env files
+await MayrConfig.load('config.yaml', ['.env', '.env.local']);
+```
+
+### Accessing Values
+
+```dart
+// Dynamic access (returns dynamic)
+final value = MayrConfig.get('app.name');
+final valueWithDefault = MayrConfig.get('missing.key', 'default');
+
+// Type-safe access (throws if key missing or wrong type)
+final name = MayrConfig.getValue<String>('app.name');
+final timeout = MayrConfig.getValue<int>('api.timeout');
+final debug = MayrConfig.getValue<bool>('app.debug');
+
+// Check if key exists
+if (MayrConfig.has('app.debug')) {
+  // ...
+}
+
+// Get all keys
+final allKeys = MayrConfig.keys();
+
+// Get all config as map
+final allConfig = MayrConfig.all;
+```
+
+### String Extension
+
+```dart
+// Dynamic access
+final name = 'app.name'.config;
+
+// Type-safe access
+final timeout = 'api.timeout'.configValue<int>();
+final debug = 'app.debug'.configValue<bool>();
+```
+
+### Validation
+
+```dart
+// Required keys validator
+MayrConfig.addValidator(
+  RequiredKeysValidator(['app.name', 'api.baseUrl']),
+);
+
+// Type validator
+MayrConfig.addValidator(
+  TypeValidator({
+    'app.name': String,
+    'api.timeout': int,
+  }),
+);
+
+// Pattern validator
+MayrConfig.addValidator(
+  KeyPatternValidator(r'^[a-z]+\.[a-z]+$'),
+);
+
+// Clear all validators
+MayrConfig.clearValidators();
+```
+
+---
+
+## 🎨 Best Practices
+
+### Organize by Feature
+
+```
+config/
+├── app.yaml       # App-wide settings
+├── api.yaml       # API configuration
+├── database.yaml  # Database settings
+├── cache.yaml     # Cache configuration
+└── features.yaml  # Feature flags
+```
+
+### Use Environment Variables for Secrets
+
+```yaml
+# config/api.yaml
+api:
+  baseUrl: ${API_URL}      # From .env
+  apiKey: ${API_KEY}       # From .env
+  timeout: 5000            # Static value
+```
+
+```.env
+API_URL=https://api.example.com
+API_KEY=your_secret_key_here
+```
+
+### Add Validation
+
+```dart
+void main() async {
+  // Validate at startup
+  MayrConfig.addValidator(
+    RequiredKeysValidator([
+      'app.name',
+      'app.version',
+      'api.baseUrl',
+      'api.apiKey',
+    ]),
+  );
+
+  await MayrConfig.load([
+    'config/app.yaml',
+    'config/api.yaml',
+  ], '.env');
+}
+```
+
+---
+
+## 💡 Flutter Integration
+
+### Setup
+
+1. Add config files to your assets in `pubspec.yaml`:
+
+```yaml
+flutter:
+  assets:
+    - config/
+    - .env
+```
+
+2. Load configuration before running your app:
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:mayr_config/mayr_config.dart';
+import 'config/app.g.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Load configuration
+  await MayrConfig.load([
+    'assets/config/app.yaml',
+    'assets/config/api.yaml',
+  ], 'assets/.env');
+
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: App.app.name,  // Type-safe!
+      debugShowCheckedModeBanner: App.app.debug,
+      home: HomePage(),
+    );
+  }
+}
+```
+
+---
+
+## 🧪 Testing
+
+```dart
+import 'package:test/test.dart';
+import 'package:mayr_config/mayr_config.dart';
+
+void main() {
+  setUp(() async {
+    MayrConfig.clear();
+    await MayrConfig.load('test/fixtures/test_config.yaml');
+  });
+
+  tearDown(() {
+    MayrConfig.clear();
+  });
+
+  test('loads configuration correctly', () {
+    expect(MayrConfig.get('app.name'), equals('TestApp'));
+    expect(MayrConfig.getValue<int>('api.timeout'), equals(3000));
+  });
+
+  test('throws on missing required keys', () {
+    MayrConfig.clear();
+    MayrConfig.addValidator(
+      RequiredKeysValidator(['app.name']),
+    );
+
+    expect(
+      () => MayrConfig.load('test/fixtures/empty_config.yaml'),
+      throwsA(isA<ConfigValidationError>()),
+    );
+  });
+}
+```
+
+---
+
+## 🚦 Error Handling
+
+MayrConfig provides clear, specific exceptions:
+
+```dart
+try {
+  await MayrConfig.load('missing.yaml');
+} on ConfigFileNotFound catch (e) {
+  print('Config file not found: ${e.path}');
+}
+
+try {
+  final value = MayrConfig.getValue<String>('missing.key');
+} on ConfigKeyNotFound catch (e) {
+  print('Key not found: ${e.key}');
+}
+
+try {
+  final value = MayrConfig.getValue<int>('app.name'); // name is String
+} on ConfigTypeMismatch catch (e) {
+  print('Type mismatch: ${e.key} (expected ${e.expectedType}, got ${e.actualType})');
+}
+
+try {
+  await MayrConfig.load('config.yaml');
+} on ConfigValidationError catch (e) {
+  print('Validation failed: ${e.message}');
+}
+```
+
+---
+
+## 📚 Examples
+
+Check out the [example](example/) directory for complete working examples:
+
+- **Basic usage** - Simple config loading
+- **Multiple files** - Organizing configs by feature
+- **Validation** - Using validators
+- **Type-safe access** - Generated code usage
+- **Flutter integration** - Complete Flutter app example
+
+---
+
+## 🎯 Why MayrConfig?
+
+### Clean Architecture
+- **Single core class** - One `MayrConfig` class does everything
+- **No overlapping concerns** - Clear separation of runtime vs codegen
+- **Minimal codebase** - Easy to understand and maintain
+
+### Type Safety
+- **Compile-time safety** - Through code generation
+- **Runtime type checking** - With `getValue<T>()`
+- **Clear error messages** - Know exactly what went wrong
+
+### Developer Experience
+- **Perfect autocomplete** - Your IDE knows all config keys
+- **Nested syntax** - Beautiful: `Config.api.timeout`
+- **Multiple access patterns** - Generated, dynamic, or extension
+- **Easy refactoring** - Rename with confidence
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTING.md) first.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🌟 Support
+
+If you find this package helpful, please:
+- ⭐ Star the repository
+- 🐛 Report issues
+- 💡 Suggest features
+- 🔀 Submit pull requests
+
+---
+
+## 📧 Contact
+
+- **Author**: Mayor Orimoloye
+- **GitHub**: [@YoungMayor](https://github.com/YoungMayor)
+- **Issues**: [GitHub Issues](https://github.com/YoungMayor/mayr_dart_config/issues)
+
+---
+
+**Built with ❤️ for the Dart and Flutter community**
 dev_dependencies:
   build_runner: ^2.4.15
 ```
